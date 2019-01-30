@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Filipa Coutinho Soares" />
+
+<meta name="date" content="2019-01-20" />
+
+<title>Exploring predictors’ importance in binomial logistic regressions</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Exploring predictors’ importance in binomial logistic regressions</h1>
+<h4 class="author"><em>Filipa Coutinho Soares</em></h4>
+<h4 class="date"><em>2019-01-20</em></h4>
+
+
+
+<div id="exploring-predictors-importance-in-binomial-logistic-regressions" class="section level2">
+<h2>Exploring predictors’ importance in binomial logistic regressions</h2>
+<div id="summary" class="section level3">
+<h3>Summary</h3>
+<p>This tutorial presents a real example where dominance analysis is used to determine predictors’ importance in a binomial logistic regression model (Azen and Traxel, 2009). More specifically, we model the distribution of a tropical native bird species, inhabiting a small oceanic island, using a binomial generalized linear model, and dominance analysis to identify the most important environmental variables.</p>
+</div>
+<div id="contents" class="section level3">
+<h3>Contents</h3>
+<ol style="list-style-type: decimal">
+<li>Introducing a tropical bird</li>
+<li>Fitting a logistic regression model</li>
+<li>Using dominance analysis</li>
+<li>Applying bootstrap analysis</li>
+</ol>
+<p>This document explains how to perform a dominance analysis to compare the relative importance of predictors in a binomial logistic regression model, using <a href="https://github.com/clbustos/dominanceAnalysis">dominanceanalysis</a> package. It is important to note that it only describes a small part of all dominanceanalysis functions. Nonetheless, it includes the most significant ones, such as <code>dominanceAnalysis()</code>, <code>da.glm.fit()</code>, <code>bootDominanceAnalysis()</code>, and <code>bootAverageDominanceAnalysis()</code>.</p>
+</div>
+<div id="introducing-a-tropical-bird" class="section level3">
+<h3>1. Introducing a tropical bird</h3>
+<p>Understanding how a species is distributed throughout the landscape is key to create effective conservation actions. By disentangling the limiting factors behind a species distribution, we can start to understand its ecological requirements, which can help support conservation and population management actions.</p>
+<p>In this tutorial, we explore the distribution of a tropical native bird species inhabiting a small oceanic island. Since human occupation, the island’s forests have disappeared from the flat lowland areas, located closer to the coastline. Nowadays, these areas are considered anthropogenic areas, which include cities, agricultural areas (e.g., horticultures), savannas, and oil-palm monocultures.</p>
+<p>We use binomial generalized linear models (GLMs) to explore the role of several environmental variables in shaping this species distribution. Furthermore, we use dominance analysis to determine the relative importance of every variable in the logistic regression model.</p>
+<p>We use the <code>tropicbird</code> dataset, which is a collection of points distributed across the island (Soares, 2017). In each of these points, a 10-minute count was carried out to record the species presence (assuming 1 if the species was present, or 0 if it was absent). The species’ presence/absence is the binary response variable (i.e., dependent variable). Additionally, we characterized all sampled points for each of the following environmental variables (i.e., independent variables, or predictors):</p>
+<ul>
+<li><p><em>remoteness (rem)</em> is an index that represents the difficulty of movement through the landscape, with the highest values corresponding to the most remote areas;</p></li>
+<li><p><em>land use (land)</em> is an index that represents the land-use intensification, with the highest values corresponding to the more humanized areas (e.g., cities, agricultural areas, horticultures, oil-palm monocultures);</p></li>
+<li><p><em>altitude (alt)</em> is a continuous variable, with the highest values corresponding to the higher altitude areas;</p></li>
+<li><p><em>slope (slo)</em> is a continuous variable, with the highest values corresponding to the steepest areas;</p></li>
+<li><p><em>rainfall (rain)</em> is a continuous variable, with the highest values corresponding to the rainy wet areas;</p></li>
+<li><p><em>distance to the coast (coast)</em> is the minimum linear distance between each point and the coast line, with the highest values corresponding to the points further away from the coastline.</p></li>
+</ul>
+<p>Please note that in this dataset there are no false negatives, hence the bird was always recorded if present. Also, the dataset has no missing values, so it is already prepared for the analysis.</p>
+<p>We start by loading the csv data using the <code>data</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dominanceanalysis)
+<span class="kw">data</span>(<span class="st">&quot;tropicbird&quot;</span>)</code></pre></div>
+<p>To see how the dataset is organized we can just write <code>str(tropicbird)</code>. The first column represents the ID of each point. From the second to the seventh column we have the six continuous predictors (<em>rem, alt, slo, rain, coast,</em> and <em>land</em>), and finally in the last column we have the binary response variable (<em>pres</em>).</p>
+<p>With the <code>str()</code> function, we can conclude the dataset has 2398 points, which we already know are distributed throughout the island.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(tropicbird)
+<span class="co">#&gt; 'data.frame':    2398 obs. of  8 variables:</span>
+<span class="co">#&gt;  $ ID   : int  1 2 3 4 5 6 7 8 9 10 ...</span>
+<span class="co">#&gt;  $ rem  : num  5.77 5.78 5.79 5.8 5.82 ...</span>
+<span class="co">#&gt;  $ alt  : int  67 49 32 23 53 243 244 307 356 380 ...</span>
+<span class="co">#&gt;  $ slo  : num  9.99 10.28 7.63 7.43 12.27 ...</span>
+<span class="co">#&gt;  $ rain : num  6396 6398 6401 6404 6456 ...</span>
+<span class="co">#&gt;  $ coast: num  0.00657 0.00471 0.00287 0.00108 0.00231 0.00443 0.00433 0.00445 0.00374 0.00427 ...</span>
+<span class="co">#&gt;  $ land : int  2 2 2 2 2 2 2 2 2 2 ...</span>
+<span class="co">#&gt;  $ pres : int  0 0 0 0 0 0 0 0 0 0 ...</span></code></pre></div>
+<p>We randomly select 70% of the points as the training set to develop the binomial generalized linear model (<em>train</em>), and the remaining 30% as the testing set to validate the model (<em>test</em>). However, we have to import <a href="https://github.com/cran/caTools">caTools</a> package.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(caTools)
+<span class="kw">set.seed</span>(<span class="dv">101</span>) 
+sample &lt;-<span class="st"> </span>caTools<span class="op">::</span><span class="kw">sample.split</span>(tropicbird<span class="op">$</span>ID, <span class="dt">SplitRatio =</span> .<span class="dv">70</span>)
+train &lt;-<span class="st"> </span><span class="kw">subset</span>(tropicbird, sample <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>)
+test  &lt;-<span class="st"> </span><span class="kw">subset</span>(tropicbird, sample <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>)</code></pre></div>
+</div>
+<div id="fitting-a-logistic-regression-model" class="section level3">
+<h3>2. Fitting a logistic regression model</h3>
+<p>The next step is to fit the model to the data frame <code>train</code>, using the <code>glm()</code> function. Note that distribution of the response variable is defined by the argument <code>family=</code>, which in this case corresponds to the binomial distribution.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">modpres &lt;-<span class="st"> </span><span class="kw">glm</span>(pres<span class="op">~</span>rem<span class="op">+</span>land<span class="op">+</span>alt<span class="op">+</span>slo<span class="op">+</span>rain<span class="op">+</span>coast, <span class="dt">data=</span>train, <span class="dt">family=</span><span class="kw">binomial</span>(<span class="dt">link=</span><span class="st">'logit'</span>))</code></pre></div>
+<p>The function <code>summary()</code> provides the summarized results of our model.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(modpres)
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call:</span>
+<span class="co">#&gt; glm(formula = pres ~ rem + land + alt + slo + rain + coast, family = binomial(link = &quot;logit&quot;), </span>
+<span class="co">#&gt;     data = train)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Deviance Residuals: </span>
+<span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span>
+<span class="co">#&gt; -1.5118  -0.2137  -0.0901  -0.0298   3.2988  </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients:</span>
+<span class="co">#&gt;               Estimate Std. Error z value Pr(&gt;|z|)    </span>
+<span class="co">#&gt; (Intercept) -1.255e+01  1.669e+00  -7.518 5.54e-14 ***</span>
+<span class="co">#&gt; rem          6.225e-01  1.998e-01   3.116 0.001833 ** </span>
+<span class="co">#&gt; land         3.009e-01  4.048e-01   0.743 0.457210    </span>
+<span class="co">#&gt; alt          1.920e-03  4.835e-04   3.972 7.13e-05 ***</span>
+<span class="co">#&gt; slo          1.588e-02  1.567e-02   1.013 0.310834    </span>
+<span class="co">#&gt; rain         6.892e-04  1.706e-04   4.040 5.35e-05 ***</span>
+<span class="co">#&gt; coast        2.865e+01  8.476e+00   3.380 0.000725 ***</span>
+<span class="co">#&gt; ---</span>
+<span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; (Dispersion parameter for binomial family taken to be 1)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     Null deviance: 530.66  on 1677  degrees of freedom</span>
+<span class="co">#&gt; Residual deviance: 352.15  on 1671  degrees of freedom</span>
+<span class="co">#&gt; AIC: 366.15</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Number of Fisher Scoring iterations: 8</span></code></pre></div>
+<p>Remember, our goal with this analysis is to describe the occurrence of our tropical bird species in terms of a linear combination of six environmental variables (i.e., predictors) and a constant term (<em>intercept</em>).</p>
+<p>First, we can see that remoteness (<em>rem</em>), altitude (<em>alt</em>), rainfall (<em>rain</em>) and distance to coast (<em>coast</em>) are statistically significant predictors (<em>p</em> &lt; 0.05). Altitude has the lower <em>p</em>-value suggesting this predictor has a strong association with the species occurrence. All significant predictors have a positive coefficient, which indicates that our bird is associated to remote, rainy, higher altitude areas, further way from the coast.</p>
+<p>If we use the <code>anova()</code> function, we can interpret the table of deviance.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">anova</span>(modpres, <span class="dt">test=</span><span class="st">&quot;Chisq&quot;</span>)
+<span class="co">#&gt; Analysis of Deviance Table</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Model: binomial, link: logit</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Response: pres</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Terms added sequentially (first to last)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;       Df Deviance Resid. Df Resid. Dev  Pr(&gt;Chi)    </span>
+<span class="co">#&gt; NULL                   1677     530.66              </span>
+<span class="co">#&gt; rem    1  145.298      1676     385.36 &lt; 2.2e-16 ***</span>
+<span class="co">#&gt; land   1    1.446      1675     383.92 0.2292467    </span>
+<span class="co">#&gt; alt    1   10.647      1674     373.27 0.0011027 ** </span>
+<span class="co">#&gt; slo    1    0.718      1673     372.55 0.3967159    </span>
+<span class="co">#&gt; rain   1    8.057      1672     364.49 0.0045317 ** </span>
+<span class="co">#&gt; coast  1   12.346      1671     352.15 0.0004418 ***</span>
+<span class="co">#&gt; ---</span>
+<span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></code></pre></div>
+<p>We must look at the difference between the null deviance, which is the deviance of the null model (i.e., model with only the intercept), and the residual deviance. The bigger is difference the best our model is doing against the null model. In our case, we can see that adding remoteness alone reduces the deviance drastically (i.e., from 530.66 to 385.36). The small deviance value of slope indicates this variable does not add much to the model, meaning that almost the same amount of variation is explained when this variable is added.</p>
+<p>The McFadden index, <em>R<sup>2</sup>M</em>, is sometimes referred to as closer equivalent of the coefficient of determination, <em>R<sup>2</sup></em>, in linear regressions. We can obtain the <em>R<sup>2</sup>M</em> for our model by using the <code>pR2()</code> function in the <a href="https://github.com/cran/pscl">pscl</a> package.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(pscl)
+<span class="co">#&gt; Classes and Methods for R developed in the</span>
+<span class="co">#&gt; Political Science Computational Laboratory</span>
+<span class="co">#&gt; Department of Political Science</span>
+<span class="co">#&gt; Stanford University</span>
+<span class="co">#&gt; Simon Jackman</span>
+<span class="co">#&gt; hurdle and zeroinfl functions by Achim Zeileis</span>
+<span class="kw">pR2</span>(modpres)
+<span class="co">#&gt;          llh      llhNull           G2     McFadden         r2ML </span>
+<span class="co">#&gt; -176.0740171 -265.3300722  178.5121103    0.3363963    0.1009205 </span>
+<span class="co">#&gt;         r2CU </span>
+<span class="co">#&gt;    0.3722362</span></code></pre></div>
+<p>After fitting the logistic regression to our dataset, we know how our species responds to the six environmental variables. Still, we are interested in the relative importance of each variable. Please note that we do not seek to identify which one of these predictors must be eliminated to achieve the best model. If that was our goal, we would use one of the several statistical model selection procedures, like the lasso. Instead, we want to assess predictors’ importance through the comparison of their individual contributions in the selected model. In other words, we want to explore the importance of each environmental variable to predict the species occurrence. Furthermore, this information will allow us to recognize the limiting factors constraining our species’ distribution, which if you remember can be used to create effective conservation actions.</p>
+</div>
+<div id="using-dominance-analysis" class="section level3">
+<h3>3. Using dominance analysis</h3>
+<p>Initially, dominance analysis was developed for ordinary least squares regressions (Budescu, 1993), but currently it can be used with logistic regression models (Azen and Traxel, 2009) and hierarchical linear models (Luo and Azen, 2013).</p>
+<p>This method is used to determine the relative importance of predictors in a regression analysis. Importance is defined as a qualitative comparison between pairs of predictors (Budescu, 1993). With this being said, one predictor is more important than another, if it contributes more to the prediction of the response variable in all possible subset models (i.e., all possible combinations of predictors) (Azen and Budescu, 2003). Nevertheless, we highlight that importance depends upon the set of predictors considered in the analysis.</p>
+<p>In dominance analysis, one predictor is said to completely dominate another, if its additional contribution to every possible subset model (that doesn’t include any of the predictors) is greater than that of the other predictor (Azen and Traxel, 2009). However, if this level of dominance cannot be established, but the average additional contribution of that predictor within each model size is greater than that of the other predictor, we can say that the first conditionally dominates the latter. Yet, if this is still not established, but this predictor’s average conditional contribution is greater than that of the other predictor over all model sizes, we can say that the first generally dominates the latter.</p>
+<p>For ordinary least squares regressions, the predictors’ additional contribution to a certain subset model is defined as the change in <em>R<sup>2</sup></em> when the predictor is added to the model. In logistic regressions, several analogues of <em>R<sup>2</sup></em> were proposed as measures of model fit, but only four were considered according to three criteria (Azen and Traxel, 2009). These are included in the <a href="https://github.com/clbustos/dominanceAnalysis">dominanceanalysis</a> package: McFadden (<em>r2.m</em>), Cox and Snell (<em>r2.cs</em>), Nagelkerke (<em>r2.n</em>), and Estrella (<em>r2.e</em>). To view these indices, we can use the <code>da.glm.fit()</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">da.glm.fit</span>()(<span class="st">&quot;names&quot;</span>)
+<span class="co">#&gt; [1] &quot;r2.m&quot;  &quot;r2.cs&quot; &quot;r2.n&quot;  &quot;r2.e&quot;</span></code></pre></div>
+<p>With this very brief introduction to dominance analysis, we can start to analyze our dataset. We can use the <code>glm</code> object to perform dominance analysis, by using the <code>dominanceAnalysis()</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dapres&lt;-<span class="kw">dominanceAnalysis</span>(modpres)</code></pre></div>
+<p>To show all the results, we use the <code>print()</code> function. However, we can explore just the raw values of each fit index by using <code>getFits()</code>. These raw values are organized in tables, one for each fit index. For simplicity, we only consider the McFadden index, <em>R<sup>2</sup>M</em>, to interpret the results (e.g., <code>$fits$r2.m</code>).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">getFits</span>(dapres,<span class="st">&quot;r2.m&quot;</span>)
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Dominance analysis fit matrices</span>
+<span class="co">#&gt; * Fit index:  r2.m </span>
+<span class="co">#&gt;                               rem  land   alt   slo  rain coast</span>
+<span class="co">#&gt; 1                           0.274 0.156 0.074 0.038 0.069 0.125</span>
+<span class="co">#&gt; rem                               0.003 0.023 0.005 0.000 0.015</span>
+<span class="co">#&gt; land                        0.121       0.014 0.006 0.033 0.040</span>
+<span class="co">#&gt; alt                         0.222 0.095       0.014 0.157 0.058</span>
+<span class="co">#&gt; slo                         0.240 0.123 0.050       0.072 0.105</span>
+<span class="co">#&gt; rain                        0.205 0.121 0.163 0.041       0.186</span>
+<span class="co">#&gt; coast                       0.164 0.071 0.007 0.018 0.130      </span>
+<span class="co">#&gt; rem+land                                0.020 0.004 0.001 0.012</span>
+<span class="co">#&gt; rem+alt                           0.000       0.001 0.014 0.005</span>
+<span class="co">#&gt; rem+slo                           0.002 0.020       0.001 0.013</span>
+<span class="co">#&gt; rem+rain                          0.004 0.037 0.005       0.028</span>
+<span class="co">#&gt; rem+coast                         0.000 0.013 0.003 0.014      </span>
+<span class="co">#&gt; land+alt                    0.127             0.003 0.093 0.029</span>
+<span class="co">#&gt; land+slo                    0.118       0.011       0.038 0.039</span>
+<span class="co">#&gt; land+rain                   0.088       0.073 0.010       0.077</span>
+<span class="co">#&gt; land+coast                  0.093       0.003 0.005 0.071      </span>
+<span class="co">#&gt; alt+slo                     0.209 0.084             0.153 0.058</span>
+<span class="co">#&gt; alt+rain                    0.079 0.030       0.010       0.077</span>
+<span class="co">#&gt; alt+coast                   0.169 0.067       0.014 0.177      </span>
+<span class="co">#&gt; slo+rain                    0.169 0.090 0.132             0.159</span>
+<span class="co">#&gt; slo+coast                   0.148 0.057 0.003       0.126      </span>
+<span class="co">#&gt; rain+coast                  0.047 0.011 0.054 0.014            </span>
+<span class="co">#&gt; rem+land+alt                                  0.001 0.015 0.006</span>
+<span class="co">#&gt; rem+land+slo                            0.018       0.002 0.011</span>
+<span class="co">#&gt; rem+land+rain                           0.034 0.004       0.025</span>
+<span class="co">#&gt; rem+land+coast                          0.014 0.003 0.014      </span>
+<span class="co">#&gt; rem+alt+slo                       0.000             0.015 0.004</span>
+<span class="co">#&gt; rem+alt+rain                      0.000       0.002       0.023</span>
+<span class="co">#&gt; rem+alt+coast                     0.001       0.001 0.032      </span>
+<span class="co">#&gt; rem+slo+rain                      0.003 0.034             0.027</span>
+<span class="co">#&gt; rem+slo+coast                     0.000 0.011       0.015      </span>
+<span class="co">#&gt; rem+rain+coast                    0.000 0.031 0.004            </span>
+<span class="co">#&gt; land+alt+slo                0.126                   0.094 0.030</span>
+<span class="co">#&gt; land+alt+rain               0.049             0.004       0.050</span>
+<span class="co">#&gt; land+alt+coast              0.103             0.003 0.114      </span>
+<span class="co">#&gt; land+slo+rain               0.082       0.066             0.076</span>
+<span class="co">#&gt; land+slo+coast              0.091       0.002       0.075      </span>
+<span class="co">#&gt; land+rain+coast             0.036       0.046 0.010            </span>
+<span class="co">#&gt; alt+slo+rain                0.071 0.024                   0.072</span>
+<span class="co">#&gt; alt+slo+coast               0.156 0.056             0.167      </span>
+<span class="co">#&gt; alt+rain+coast              0.025 0.004       0.005            </span>
+<span class="co">#&gt; slo+rain+coast              0.037 0.007 0.045                  </span>
+<span class="co">#&gt; rem+land+alt+slo                                    0.015 0.005</span>
+<span class="co">#&gt; rem+land+alt+rain                             0.002       0.023</span>
+<span class="co">#&gt; rem+land+alt+coast                            0.001 0.032      </span>
+<span class="co">#&gt; rem+land+slo+rain                       0.032             0.025</span>
+<span class="co">#&gt; rem+land+slo+coast                      0.012       0.015      </span>
+<span class="co">#&gt; rem+land+rain+coast                     0.032 0.004            </span>
+<span class="co">#&gt; rem+alt+slo+rain                  0.000                   0.022</span>
+<span class="co">#&gt; rem+alt+slo+coast                 0.001             0.033      </span>
+<span class="co">#&gt; rem+alt+rain+coast                0.001       0.002            </span>
+<span class="co">#&gt; rem+slo+rain+coast                0.000 0.029                  </span>
+<span class="co">#&gt; land+alt+slo+rain           0.047                         0.050</span>
+<span class="co">#&gt; land+alt+slo+coast          0.101                   0.114      </span>
+<span class="co">#&gt; land+alt+rain+coast         0.022             0.004            </span>
+<span class="co">#&gt; land+slo+rain+coast         0.031       0.040                  </span>
+<span class="co">#&gt; alt+slo+rain+coast          0.021 0.002                        </span>
+<span class="co">#&gt; rem+land+alt+slo+rain                                     0.023</span>
+<span class="co">#&gt; rem+land+alt+slo+coast                              0.033      </span>
+<span class="co">#&gt; rem+land+alt+rain+coast                       0.002            </span>
+<span class="co">#&gt; rem+land+slo+rain+coast                 0.030                  </span>
+<span class="co">#&gt; rem+alt+slo+rain+coast            0.001                        </span>
+<span class="co">#&gt; land+alt+slo+rain+coast     0.020                              </span>
+<span class="co">#&gt; rem+land+alt+slo+rain+coast</span></code></pre></div>
+<p>The first row represents the raw values of each univariate model. The following rows show the additional contribution of each predictor added to the subset model (indicated by the first column). For example, the univariate model containing altitude produces <em>R<sup>2</sup>M</em> = 0.074 (see entry in the first row under the <em>alt</em> column of the table). If distance to coast(<em>coast</em>) is added to this model, <em>R<sup>2</sup>M</em> increases by 0.058 (see entry in the <em>alt</em> row under the <em>coast</em> column of the table). In contrast, if rainfall (<em>rain</em>) is added to the altitude subset model, the increase in <em>R<sup>2</sup>M</em> is 0.157 (see entry in the <em>alt</em> row under the <em>rain</em> column of the table). These results indicate that rainfall dominates distance to coast when added to the altitude subset model, because the additional contribution of rainfall to this model (0.157) is larger than the additional contribution of distance to coast to the same model (0.058).</p>
+<p>Furthermore, if the additional contributions of a predictor are higher than that of other predictor for every subset model, the first predictor is said to completely dominate the second. This is the case with distance to coast, which completely dominates slope (compare the values of the columns <em>coast</em> and <em>slo</em> in the table). The summarized results for complete dominance could be retrieved using <code>dominanceMatrix()</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dominanceMatrix</span>(dapres, <span class="dt">type=</span><span class="st">&quot;complete&quot;</span>,<span class="dt">fit.functions =</span> <span class="st">&quot;r2.m&quot;</span> )
+<span class="co">#&gt;       rem land alt slo rain coast</span>
+<span class="co">#&gt; rem   0.5  1.0 0.5 1.0  0.5   0.5</span>
+<span class="co">#&gt; land  0.0  0.5 0.5 0.5  0.5   0.5</span>
+<span class="co">#&gt; alt   0.5  0.5 0.5 0.5  0.5   0.5</span>
+<span class="co">#&gt; slo   0.0  0.5 0.5 0.5  0.5   0.0</span>
+<span class="co">#&gt; rain  0.5  0.5 0.5 0.5  0.5   0.5</span>
+<span class="co">#&gt; coast 0.5  0.5 0.5 1.0  0.5   0.5</span></code></pre></div>
+<p>This complete dominance matrix summarizes the relation between each pair of predictors. If the value between two predictors is 1, the predictor under the first column completely dominates the other predictor of the pair. If the value is 0, the predictor under the first column is completely dominated by the other predictor of the pair. Lastly, if the value is 0.5, complete dominance could not be established between the pair. For this reason, as distance to coast dominates completely in all submodels, in the matrix the element row:coast-col:slo have a value of 1 (see entry in the <em>coast</em> row under the <em>slo</em> column of the table).</p>
+<p>However, if complete dominance cannot be established, we explore conditional dominance by using method <code>contributionByLevel()</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">contributionByLevel</span>(dapres,<span class="dt">fit.functions=</span><span class="st">&quot;r2.m&quot;</span>)
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Contribution by level</span>
+<span class="co">#&gt; * Fit index:  r2.m </span>
+<span class="co">#&gt;  level   rem  land   alt   slo  rain coast</span>
+<span class="co">#&gt;      0 0.274 0.156 0.074 0.038 0.069 0.125</span>
+<span class="co">#&gt;      1 0.190 0.082 0.051 0.017 0.079 0.081</span>
+<span class="co">#&gt;      2 0.125 0.034 0.037 0.007 0.069 0.050</span>
+<span class="co">#&gt;      3 0.078 0.009 0.030 0.004 0.054 0.033</span>
+<span class="co">#&gt;      4 0.044 0.001 0.029 0.003 0.042 0.025</span>
+<span class="co">#&gt;      5 0.020 0.001 0.030 0.002 0.033 0.023</span></code></pre></div>
+<p>For each model size (see column <em>level</em> of the table), the average additional contribution of each predictor is calculated. For example, the average additional contribution of altitude to models of size 1 is computed as (0.0072582 + 0.0137805 + 0.1629760 + 0.0227860 + 0.0504051)/5 = 0.051. To establish conditional dominance, we compare the average additional contributions across all model sizes. For example, rainfall conditionally dominates slope, because the average additional contribution of rainfall is higher than that of slope across all model sizes (compare the values of the columns <em>rain</em> and <em>slo</em> in the table).</p>
+<p>The summarized results for conditional dominance can be retrieved using <code>dominanceMatrix()</code> (see entry in the <em>rain</em> row under the <em>slo</em> column of the table).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dominanceMatrix</span>(dapres, <span class="dt">type=</span><span class="st">&quot;conditional&quot;</span>,<span class="dt">fit.functions =</span> <span class="st">&quot;r2.m&quot;</span>)
+<span class="co">#&gt;       rem land alt slo rain coast</span>
+<span class="co">#&gt; rem   0.5  1.0 0.5 1.0  0.5   0.5</span>
+<span class="co">#&gt; land  0.0  0.5 0.5 0.5  0.5   0.5</span>
+<span class="co">#&gt; alt   0.5  0.5 0.5 1.0  0.5   0.5</span>
+<span class="co">#&gt; slo   0.0  0.5 0.0 0.5  0.0   0.0</span>
+<span class="co">#&gt; rain  0.5  0.5 0.5 1.0  0.5   0.5</span>
+<span class="co">#&gt; coast 0.5  0.5 0.5 1.0  0.5   0.5</span></code></pre></div>
+<p>Lastly, if conditional dominance cannot be established, we explore general dominance by using <code>averageContribution()</code> method.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">averageContribution</span>(dapres,<span class="dt">fit.functions =</span> <span class="st">&quot;r2.m&quot;</span>)
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Average Contribution by predictor</span>
+<span class="co">#&gt;        rem  land   alt   slo  rain coast</span>
+<span class="co">#&gt; r2.m 0.122 0.047 0.042 0.012 0.058 0.056</span></code></pre></div>
+<p>To determine general dominance, we compute the mean of each predictor’s conditional measures. We conclude that remoteness has the highest value (0.122) and generally dominates all other predictors. For this reason, in the general dominance matrix, remoteness assumes a value of 1 with all other predictors (see entry in the <em>rem</em> row under every column of the table).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dominanceMatrix</span>(dapres, <span class="dt">type=</span><span class="st">&quot;general&quot;</span>,<span class="dt">fit.functions =</span> <span class="st">&quot;r2.m&quot;</span>)
+<span class="co">#&gt;       rem land alt slo rain coast</span>
+<span class="co">#&gt; rem   0.5  1.0 1.0 1.0  1.0   1.0</span>
+<span class="co">#&gt; land  0.0  0.5 1.0 1.0  0.0   0.0</span>
+<span class="co">#&gt; alt   0.0  0.0 0.5 1.0  0.0   0.0</span>
+<span class="co">#&gt; slo   0.0  0.0 0.0 0.5  0.0   0.0</span>
+<span class="co">#&gt; rain  0.0  1.0 1.0 1.0  0.5   1.0</span>
+<span class="co">#&gt; coast 0.0  1.0 1.0 1.0  0.0   0.5</span></code></pre></div>
+<p>Nevertheless, depending on the goals, we might want to analyze the dominance between all pairs of predictors. If this is the case, we can simply use the dominance matrices explained above, which summarize the relation between pairs of predictors in three values (0, 0.5 and 1). In our example, when looking at complete dominance matrix, we conclude that distance to coast completely dominates slope, and remoteness completely dominates land use and slope. However, when looking at conditional dominance matrix, we realize that altitude conditionally dominates slope, and rainfall conditionally dominates slope. Lastly, when exploring general dominance matrix, we conclude that distance to coast generally dominates altitude and land use, land use generally dominates altitude and slope, rainfall generally dominates altitude, distance to coast and land use, and remoteness generally dominates altitude, distance to coast and rainfall.</p>
+<p>Furthermore, if we want to establish a rank of importance among predictors, we can explore the raw values of general dominance. In our example, we conclude that remoteness is clearly the most important predictor to explain bird species occurrence (0.122), followed by rainfall (0.058), distance to coast (0.056), land use (0.047), altitude (0.042) and slope (0.012).</p>
+</div>
+<div id="applying-bootstrap-analysis" class="section level3">
+<h3>4. Applying bootstrap analysis</h3>
+<p>To evaluate the robustness of our results, we use bootstrapping analysis by using <code>bootDominanceAnalysis()</code> function. Remember that this method could take a long time to complete.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">bootmodpres100 &lt;-<span class="st"> </span><span class="kw">bootDominanceAnalysis</span>(modpres, <span class="dt">R=</span><span class="dv">100</span>)
+<span class="kw">summary</span>(bootmodpres100,<span class="dt">fit.functions=</span><span class="st">&quot;r2.m&quot;</span>)</code></pre></div>
+<pre><code>#&gt; Dominance Analysis
+#&gt; ==================
+#&gt; Fit index: r2.m 
+#&gt;    dominance    i     k Dij  mDij SE.Dij  Pij  Pji Pnoij  Rep
+#&gt;     complete  rem  land 1.0 1.000 0.0000 1.00 0.00  0.00 1.00
+#&gt;     complete  rem   alt 0.5 0.635 0.2231 0.27 0.00  0.73 0.73
+#&gt;     complete  rem   slo 1.0 0.960 0.1363 0.92 0.00  0.08 0.92
+#&gt;     complete  rem  rain 0.5 0.630 0.2204 0.26 0.00  0.74 0.74
+#&gt;     complete  rem coast 0.5 0.730 0.2505 0.46 0.00  0.54 0.54
+#&gt;     complete land   alt 0.5 0.500 0.0000 0.00 0.00  1.00 1.00
+#&gt;     complete land   slo 0.5 0.515 0.0857 0.03 0.00  0.97 0.97
+#&gt;     complete land  rain 0.5 0.500 0.0000 0.00 0.00  1.00 1.00
+#&gt;     complete land coast 0.5 0.480 0.0985 0.00 0.04  0.96 0.96
+#&gt;     complete  alt   slo 0.5 0.555 0.1572 0.11 0.00  0.89 0.89
+#&gt;     complete  alt  rain 0.5 0.495 0.0500 0.00 0.01  0.99 0.99
+#&gt;     complete  alt coast 0.5 0.400 0.2010 0.00 0.20  0.80 0.80
+#&gt;     complete  slo  rain 0.5 0.420 0.1842 0.00 0.16  0.84 0.84
+#&gt;     complete  slo coast 0.0 0.155 0.2324 0.00 0.69  0.31 0.69
+#&gt;     complete rain coast 0.5 0.515 0.0857 0.03 0.00  0.97 0.97
+#&gt;  conditional  rem  land 1.0 1.000 0.0000 1.00 0.00  0.00 1.00
+#&gt;  conditional  rem   alt 0.5 0.635 0.2231 0.27 0.00  0.73 0.73
+#&gt;  conditional  rem   slo 1.0 0.960 0.1363 0.92 0.00  0.08 0.92
+#&gt;  conditional  rem  rain 0.5 0.630 0.2204 0.26 0.00  0.74 0.74
+#&gt;  conditional  rem coast 0.5 0.730 0.2505 0.46 0.00  0.54 0.54
+#&gt;  conditional land   alt 0.5 0.500 0.0000 0.00 0.00  1.00 1.00
+#&gt;  conditional land   slo 0.5 0.515 0.0857 0.03 0.00  0.97 0.97
+#&gt;  conditional land  rain 0.5 0.500 0.0000 0.00 0.00  1.00 1.00
+#&gt;  conditional land coast 0.5 0.480 0.0985 0.00 0.04  0.96 0.96
+#&gt;  conditional  alt   slo 0.5 0.555 0.1572 0.11 0.00  0.89 0.89
+#&gt;  conditional  alt  rain 0.5 0.495 0.0500 0.00 0.01  0.99 0.99
+#&gt;  conditional  alt coast 0.5 0.400 0.2010 0.00 0.20  0.80 0.80
+#&gt;  conditional  slo  rain 0.5 0.420 0.1842 0.00 0.16  0.84 0.84
+#&gt;  conditional  slo coast 0.0 0.155 0.2324 0.00 0.69  0.31 0.69
+#&gt;  conditional rain coast 0.5 0.515 0.0857 0.03 0.00  0.97 0.97
+#&gt;      general  rem  land 1.0 1.000 0.0000 1.00 0.00  0.00 1.00
+#&gt;      general  rem   alt 0.5 0.635 0.2231 0.27 0.00  0.73 0.73
+#&gt;      general  rem   slo 1.0 0.960 0.1363 0.92 0.00  0.08 0.92
+#&gt;      general  rem  rain 0.5 0.630 0.2204 0.26 0.00  0.74 0.74
+#&gt;      general  rem coast 0.5 0.730 0.2505 0.46 0.00  0.54 0.54
+#&gt;      general land   alt 0.5 0.500 0.0000 0.00 0.00  1.00 1.00
+#&gt;      general land   slo 0.5 0.515 0.0857 0.03 0.00  0.97 0.97
+#&gt;      general land  rain 0.5 0.500 0.0000 0.00 0.00  1.00 1.00
+#&gt;      general land coast 0.5 0.480 0.0985 0.00 0.04  0.96 0.96
+#&gt;      general  alt   slo 0.5 0.555 0.1572 0.11 0.00  0.89 0.89
+#&gt;      general  alt  rain 0.5 0.495 0.0500 0.00 0.01  0.99 0.99
+#&gt;      general  alt coast 0.5 0.400 0.2010 0.00 0.20  0.80 0.80
+#&gt;      general  slo  rain 0.5 0.420 0.1842 0.00 0.16  0.84 0.84
+#&gt;      general  slo coast 0.0 0.155 0.2324 0.00 0.69  0.31 0.69
+#&gt;      general rain coast 0.5 0.515 0.0857 0.03 0.00  0.97 0.97</code></pre>
+<p>This method provides measures of accuracy for our estimates. More specifically, the bootstrap values of complete, conditional and general dominance are calculated for each pair of predictors (see column <em>Dij</em> that represents the original result, <em>mDij</em> that represents the mean for <em>Dij</em> on bootstrap samples, and <em>SE.Dij</em> that represents standard error). These values of dominance can be interpreted as the expected level of dominance between pairs of predictors, as the degree to which this pattern was found on the resamples. Note that we recommend this analysis is performed with at least 1000 replications (<em>R</em>), with the size of the original sample, for precise results (i.e., bootstrap samples).</p>
+<p>Additionally, other parameters are estimated: <em>Pij</em> (proportion of bootstrap samples where <em>i</em> dominates <em>j</em>); <em>Pji</em> (proportion of bootstrap samples where <em>j</em> dominates <em>i</em>); <em>Pnoij</em> (proportion of samples where no dominance can be asserted); and <em>Rep</em> (proportion of samples where original dominance is replicated). When standard error and reproducibility are close or equal to zero and one, respectively, the results are fairly robust. For example, in our analysis we see that the bootstrap complete dominance of remoteness over land use has a standard error of zero and a reproducibility of 1.</p>
+<p>Moreover, we can obtain bootstrap general dominance values by using <code>bootAverageDominanceAnalysis()</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">bootavemodpres100&lt;-<span class="kw">bootAverageDominanceAnalysis</span>(modpres,<span class="dt">R=</span><span class="dv">100</span>)
+<span class="kw">summary</span>(bootavemodpres100,<span class="dt">fit.functions=</span><span class="kw">c</span>(<span class="st">&quot;r2.m&quot;</span>))</code></pre></div>
+<pre><code>#&gt; Bootstrap Average for Dominance Analysis
+#&gt; ========================================
+#&gt; Resamples:  100 
+#&gt; Fit index: r2.m 
+#&gt;     Var original   bs.E      bias   bs.SE
+#&gt; 1   rem   0.1219 0.1226  0.000756 0.01788
+#&gt; 2  land   0.0473 0.0487  0.001357 0.00857
+#&gt; 3   alt   0.0418 0.0429  0.001067 0.00985
+#&gt; 4   slo   0.0117 0.0148  0.003045 0.00803
+#&gt; 5  rain   0.0576 0.0595  0.001933 0.01455
+#&gt; 6 coast   0.0561 0.0545 -0.001596 0.01484</code></pre>
+<p>The results are organized per fit index and include the estimated bootstrap values of general dominance for each predictor (<em>bs.E</em>) and its corresponding standard errors (<em>bs.SE</em>), as well as the previously calculated general dominance values (<em>original</em>). The difference between these values and the estimated bootstrap values is represented by <em>Bias</em>. In our example, the bias is small, which is another good indicator of our results’ robustness.</p>
+</div>
+<div id="references" class="section level3">
+<h3>References</h3>
+<p><em>Following the citation rules of Biological Conservation</em></p>
+<ul>
+<li><p>Azen, R., Budescu, D. V., 2003. The Dominance Analysis Approach for Comparing Predictors in Multiple Regression. Psychol. Methods 8, 129-148. <a href="https://doi.org/10.1037/1082-989X.8.2.129" class="uri">https://doi.org/10.1037/1082-989X.8.2.129</a></p></li>
+<li><p>Azen, R., Traxel, N., 2009. Using Dominance Analysis to Determine Predictor Importance in Logistic Regression. J. Educ. Behav. Stat. 34, 319-347. <a href="https://doi.org/10.3102/1076998609332754" class="uri">https://doi.org/10.3102/1076998609332754</a></p></li>
+<li><p>Budescu, D. V., 1993. Dominance analysis: A new approach to the problem of relative importance of predictors in multiple regression. Psychol. Bull. 114, 542-551. <a href="https://doi.org/10.1037/0033-2909.114.3.542" class="uri">https://doi.org/10.1037/0033-2909.114.3.542</a></p></li>
+<li><p>Luo, W., Azen, R., 2013. Determining Predictor Importance in Hierarchical Linear Models Using Dominance Analysis. J. Educ. Behav. Stat. 38, 3-31. <a href="https://doi.org/10.3102/1076998612458319" class="uri">https://doi.org/10.3102/1076998612458319</a></p></li>
+<li><p>Soares, F.C., 2017. Modelling the distribution of Sao Tome bird species: Ecological determinants and conservation prioritization. Faculdade de Ciencias da Universidade de Lisboa.</p></li>
+</ul>
+<p>Author’s e-mail: <a href="mailto:filipa.mco.soares@gmail.com">filipa.mco.soares@gmail.com</a></p>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
