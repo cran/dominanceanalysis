@@ -71,7 +71,7 @@ da.lm.fit<-function(data,...) {
 #' \item McFadden, D. (1974). Conditional logit analysis of qualitative choice behavior. In P. Zarembka (Ed.), Frontiers in econometrics (pp. 104-142). New York, NY: Academic Press.
 #' }
 #' @family fit indices
-#' @importFrom stats lm glm logLik
+#' @importFrom stats lm glm logLik update
 #' @export
 #' @examples
 #' x1<-rnorm(1000)
@@ -91,9 +91,16 @@ da.glm.fit<-function(data,family.glm,...) {
 
 		g1<-glm(x,data=data,family=family.glm);
 
-		l0=-0.5*g1$null.deviance
+		g.null<-update(g1,~1,data=data,family=family.glm)
+		#print(summary(g1))
+		#print(logLik(g.null))
+		#l0=-0.5*g1$null.deviance
+
+		#print(l0)
+		l0=logLik(g.null)
 		l1=logLik(g1)
 		n<-nrow(mc$data)
+
 
     r2.cs<-1-exp(l0-l1)^(2/n)
     #cat(l0,",",l1,",",n,",",r2.cs,"\n")
@@ -181,5 +188,27 @@ da.mlmWithCov.fit<-function(base.cov, ...) {
     }
     mlm.1<-mlmWithCov(x,base.cov)
     list(r.squared.xy = mlm.1$r.squared.xy, p.squared.yx = mlm.1$p.squared.yx)
+  }
+}
+
+#' Provides coefficient of determination for \code{dynlm} models.
+#'
+#' Uses \eqn{R^2} (coefficient of determination) as fit index
+#' @param data complete data set containing the variables in the model
+#' @param ... ignored
+#' @return A function described by \link{using-fit-indices} description for interface
+#' @export
+#' @family fit indices
+da.dynlm.fit<-function(data,...) {
+  mc=match.call()
+  function(x) {
+    if(x=="names") {
+      return("r2")
+    }
+
+    environment(x)<-environment()
+    dlm<-dynlm::dynlm(formula=x,data=data)
+    out<-list(r2=summary(dlm)$r.squared)
+    out
   }
 }

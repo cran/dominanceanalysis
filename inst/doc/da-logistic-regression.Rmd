@@ -72,14 +72,13 @@ With the `str()` function, we can conclude the dataset has 2398 points, which we
 str(tropicbird)
 ```
 
-We randomly select 70% of the points as the training set to develop the binomial generalized linear model (*train*), and the remaining 30% as the testing set to validate the model (*test*). However, we have to import [caTools](https://github.com/cran/caTools) package.
+We randomly select 70% of the points as the training set to develop the binomial generalized linear model (*train*), and the remaining 30% as the testing set to validate the model (*test*).
 
 ```{r}
-library(caTools)
 set.seed(101) 
-sample <- caTools::sample.split(tropicbird$ID, SplitRatio = .70)
-train <- subset(tropicbird, sample == TRUE)
-test  <- subset(tropicbird, sample == FALSE)
+sample <-sample(floor(nrow(tropicbird))*0.7)
+train <- tropicbird[sample,]
+test  <- tropicbird[-sample,]
 ```
 
 
@@ -199,7 +198,7 @@ summary(readRDS(system.file("extdata", "bootmodpres100.rds", package = "dominanc
 ```
 This method provides measures of accuracy for our estimates. More specifically, the bootstrap values of complete, conditional and general dominance are calculated for each pair of predictors (see column *Dij* that represents the original result, *mDij* that represents the mean for *Dij* on bootstrap samples, and *SE.Dij* that represents standard error). These values of dominance can be interpreted as the expected level of dominance between pairs of predictors, as the degree to which this pattern was found on the resamples. Note that we recommend this analysis is performed with at least 1000 replications (*R*), with the size of the original sample, for precise results (i.e., bootstrap samples).
 
-Additionally, other parameters are estimated: *Pij* (proportion of bootstrap samples where *i* dominates *j*); *Pji* (proportion of bootstrap samples where *j* dominates *i*); *Pnoij* (proportion of samples where no dominance can be asserted); and *Rep* (proportion of samples where original dominance is replicated). When standard error and reproducibility are close or equal to zero and one, respectively, the results are fairly robust. For example, in our analysis we see that the bootstrap complete dominance of remoteness over land use has a standard error of zero and a reproducibility of 1.
+Additionally, other parameters are estimated: *Pij* (proportion of bootstrap samples where *i* dominates *j*); *Pji* (proportion of bootstrap samples where *j* dominates *i*); *Pnoij* (proportion of samples where no dominance can be asserted); and *Rep* (proportion of samples where original dominance is replicated). When standard error and reproducibility are close or equal to zero and one, respectively, the results are fairly robust. For example, in our analysis we see that the bootstrap complete dominance of remoteness over land use has a standard error of 0.05 and a reproducibility of .99.
 
 Moreover, we can obtain bootstrap general dominance values by using `bootAverageDominanceAnalysis()` function.
 
@@ -231,3 +230,11 @@ The results are organized per fit index and include the estimated bootstrap valu
 
 
 Author's e-mail: filipa.mco.soares@gmail.com
+
+```{r,echo=FALSE,eval=FALSE}
+# This code allows to save the bootstrap analyses
+saveRDS(bootmodpres100, "bootmodpres100.rds")
+saveRDS(bootavemodpres100, "bootavemodpres100.rds")
+
+```
+

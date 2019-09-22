@@ -12,11 +12,10 @@ data("tropicbird")
 str(tropicbird)
 
 ## ------------------------------------------------------------------------
-library(caTools)
 set.seed(101) 
-sample <- caTools::sample.split(tropicbird$ID, SplitRatio = .70)
-train <- subset(tropicbird, sample == TRUE)
-test  <- subset(tropicbird, sample == FALSE)
+sample <-sample(floor(nrow(tropicbird))*0.7)
+train <- tropicbird[sample,]
+test  <- tropicbird[-sample,]
 
 ## ------------------------------------------------------------------------
 modpres <- glm(pres~rem+land+alt+slo+rain+coast, data=train, family=binomial(link='logit'))
@@ -68,4 +67,10 @@ summary(readRDS(system.file("extdata", "bootmodpres100.rds", package = "dominanc
 
 ## ---- echo=FALSE---------------------------------------------------------
 summary(readRDS(system.file("extdata", "bootavemodpres100.rds", package = "dominanceanalysis")),fit.functions="r2.m")
+
+## ----echo=FALSE,eval=FALSE-----------------------------------------------
+#  # This code allows to save the bootstrap analyses
+#  saveRDS(bootmodpres100, "bootmodpres100.rds")
+#  saveRDS(bootavemodpres100, "bootavemodpres100.rds")
+#  
 
