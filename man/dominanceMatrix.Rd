@@ -9,12 +9,18 @@
 \usage{
 dominanceMatrix(x, ...)
 
-\method{dominanceMatrix}{data.frame}(x, undefined.value = 0.5, ...)
+\method{dominanceMatrix}{data.frame}(x, undefined.value = 0.5, ordered = FALSE, ...)
 
-\method{dominanceMatrix}{matrix}(x, undefined.value = 0.5, ...)
+\method{dominanceMatrix}{matrix}(x, undefined.value = 0.5, ordered = FALSE, ...)
 
-\method{dominanceMatrix}{dominanceAnalysis}(x, type,
-  fit.functions = NULL, drop = TRUE, ...)
+\method{dominanceMatrix}{dominanceAnalysis}(
+  x,
+  type,
+  fit.functions = NULL,
+  drop = TRUE,
+  ordered = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{matrix (calculate) or dominanceAnalysis (retrieve)}
@@ -22,6 +28,8 @@ dominanceMatrix(x, ...)
 \item{...}{extra arguments. Not used}
 
 \item{undefined.value}{value when no dominance can be established}
+
+\item{ordered}{Logical. If TRUE, sort the output according to dominance.}
 
 \item{type}{type of dominance matrix to retrieve. Could be complete, conditional or general}
 
@@ -47,11 +55,11 @@ from dominanceAnalysis objects
 \details{
 To calculate a dominance matrix from a matrix or dataframe, use
 
-\code{dominanceMatrix(x,undefined.value)}.
+  \code{dominanceMatrix(x,undefined.value)}.
 
 To retrieve the dominance matrices from a dominanceAnalysis object, use
 
-\code{dominanceMatrix(x,type,fit.function,drop)}
+   \code{dominanceMatrix(x,type,fit.function,drop)}
 }
 \examples{
 # For matrix or data.frame
@@ -63,8 +71,10 @@ da.longley<-dominanceAnalysis(lm(Employed~.,longley))
 dominanceMatrix(da.longley,type="complete")
 }
 \seealso{
-Other retrieval methods: \code{\link{averageContribution}},
-  \code{\link{contributionByLevel}},
-  \code{\link{dominanceBriefing}}, \code{\link{getFits}}
+Other retrieval methods: 
+\code{\link{averageContribution}()},
+\code{\link{contributionByLevel}()},
+\code{\link{dominanceBriefing}()},
+\code{\link{getFits}()}
 }
 \concept{retrieval methods}
