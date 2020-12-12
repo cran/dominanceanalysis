@@ -53,8 +53,6 @@ dominanceMatrix.data.frame<-function(x,undefined.value=0.5, ordered=FALSE, ...) 
 #' @importFrom stats na.omit
 #' @export
 #' @rdname dominanceMatrix
-
-
 dominanceMatrix.matrix<-function(x,undefined.value=0.5, ordered=FALSE, ...) {
 	vars<-colnames(x)
 	if(is.null(vars)) {
@@ -82,7 +80,7 @@ dominanceMatrix.matrix<-function(x,undefined.value=0.5, ordered=FALSE, ...) {
 	  }
 	  #class(ma)<-c("dominanceMatrix","matrix")
 	  if(ordered ) {
-	    ma<-sort.matrix(ma)
+	    ma<-.sort.matrix(ma)
 	  }
 	  ma
 }
@@ -111,14 +109,14 @@ dominanceMatrix.dominanceAnalysis<-function(x, type, fit.functions=NULL,drop=TRU
 
     if(length(fit.functions)==1 & drop) {
       if(ordered) {
-        sort.matrix(matrices.type[[fit.functions]])
+        .sort.matrix(matrices.type[[fit.functions]])
       } else {
         matrices.type[[fit.functions]]
       }
     } else {
       rr<-matrices.type[fit.functions]
       if(ordered) {
-        rr<-lapply(rr, sort.matrix)
+        rr<-lapply(rr, .sort.matrix)
         }
       rr
     }
@@ -127,7 +125,7 @@ dominanceMatrix.dominanceAnalysis<-function(x, type, fit.functions=NULL,drop=TRU
 
 # Sort a matrix
 #' @keywords internal
-sort.matrix<-function(x) {
+.sort.matrix<-function(x) {
   or<-order(rowSums(x,na.rm=T),decreasing = T)
   x[or,or]
 }

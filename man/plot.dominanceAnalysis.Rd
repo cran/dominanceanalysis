@@ -8,6 +8,7 @@
   x,
   which.graph = c("general", "complete", "complete_no_facet", "conditional"),
   fit.function = NULL,
+  complete_flipped_axis = TRUE,
   ...
 )
 }
@@ -17,6 +18,9 @@
 \item{which.graph}{which graph to plot}
 
 \item{fit.function}{name of the fit indices to retrieve. If NULL, first index will be used}
+
+\item{complete_flipped_axis}{For complete and complete_no_facet plot, set the R2 on X axis
+to allow easier visualization}
 
 \item{...}{unused}
 }
@@ -30,9 +34,12 @@ Plot for a \code{\link{dominanceAnalysis}} object
 data(longley)
 lm.1<-lm(Employed~.,longley)
 da<-dominanceAnalysis(lm.1)
-# By default, plot complete dominance of first fit function
+# By default, plot() shows the general dominance plot
 plot(da)
-# Parameter which.graph defines dominance to plot
+# Parameter which.graph defines which type of dominance to plot
 plot(da,which.graph='conditional')
-plot(da,which.graph='general')
+plot(da,which.graph='complete')
+# Parameter complete_flipped_axis allows to flip axis on complete plot, to better visualization
+plot(da,which.graph='complete', complete_flipped_axis=TRUE)
+plot(da,which.graph='complete', complete_flipped_axis=FALSE)
 }

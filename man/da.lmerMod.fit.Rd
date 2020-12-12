@@ -2,23 +2,26 @@
 % Please edit documentation in R/daFitFunctions.r
 \name{da.lmerMod.fit}
 \alias{da.lmerMod.fit}
-\title{Provides fit indices for hierarchical linear models, based on Luo and Azen (2013).}
+\title{Provides fit indices for hierarchical linear models, based on Nakagawa(2013) and Luo and Azen (2013).}
 \usage{
-da.lmerMod.fit(data, null.model, ...)
+da.lmerMod.fit(original.model, null.model, newdata = NULL, ...)
 }
 \arguments{
-\item{data}{complete data set containing the variables in the model}
+\item{original.model}{Original fitted model}
 
 \item{null.model}{needed for HLM models}
+
+\item{newdata}{Data used in update statement}
 
 \item{...}{ignored}
 }
 \description{
-Provides fit indices for hierarchical linear models, based on Luo and Azen (2013).
+Provides fit indices for hierarchical linear models, based on Nakagawa(2013) and Luo and Azen (2013).
 }
 \references{
 \itemize{
 \item Luo, W., & Azen, R. (2012). Determining Predictor Importance in Hierarchical Linear Models Using Dominance Analysis. Journal of Educational and Behavioral Statistics, 38(1), 3-31. doi:10.3102/1076998612458319
+\item Nakagawa, S., & Schielzeth, H. (2013). A general and simple method for obtaining R2 from generalized linear mixed-effects models. Methods in Ecology and Evolution, 4(2), 133-142. doi:10.1111/j.2041-210x.2012.00261.x
 }
 }
 \seealso{

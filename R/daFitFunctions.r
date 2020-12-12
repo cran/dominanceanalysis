@@ -9,12 +9,12 @@
 #' Interfaces are:
 #' \itemize{
 #' \item \code{da.CLASS.fit("names")} returns a vector with names for fit indices
-#' \item \code{da.CLASS.fit(data, null.model, base.cov=NULL,family.glm=NULL)} returns a function with one parameter, the formula to calculate the submodel.
+#' \item \code{da.CLASS.fit(original.model, data, null.model, base.cov=NULL)} returns a function with one parameter, the formula to calculate the submodel.
 #' }
-#' @param data Complete data set containing the variables in the model.
-#' @param null.model Null model only needed for HLM models.
+#' @param original.model Original fitted model
+#' @param newdata Data used in update statement
+#' @param null.model Null model, only needed for HLM models.
 #' @param base.cov Required if only a covariance/correlation matrix is provided.
-#' @param family.glm family param for glm models.
 #' @name using-fit-indices
 
 NULL
@@ -22,7 +22,8 @@ NULL
 #' Provides coefficient of determination for \code{lm} models.
 #'
 #' Uses \eqn{R^2} (coefficient of determination) as fit index
-#' @param data complete data set containing the variables in the model
+#' @param original.model Original fitted model
+#' @param newdata Data used in update statement
 #' @param ... ignored
 #' @return A function described by \link{using-fit-indices} description for interface
 #' @export
@@ -33,15 +34,21 @@ NULL
 #' x2<-rnorm(1000)
 #' y <-x1+x2+rnorm(1000)
 #' df.1=data.frame(y=y,x1=x1,x2=x2)
-#' da.lm.fit(df.1)("names")
-#' da.lm.fit(df.1)(y~x1)
-da.lm.fit<-function(data,...) {
+#' lm.1<-lm(y~x1+x2)
+#' da.lm.fit(lm.1)("names")
+#' da.lm.fit(lm.1)(y~x1)
+da.lm.fit<-function(original.model, newdata=NULL, ...) {
   mc=match.call()
   function(x) {
   	if(x=="names") {
   		return("r2")
   	}
-	 list(r2=summary(lm(x, data=data))$r.squared)
+    if(!is.null(newdata)) {
+      mod<-update(original.model, x, data=newdata)
+    } else {
+      mod<-update(original.model, x)
+    }
+	 list(r2=summary(mod)$r.squared)
 	}
 }
 
@@ -50,8 +57,8 @@ da.lm.fit<-function(data,...) {
 #' Functions only available for logistic regression, based on Azen and Traxel(2009).
 #'
 #' Check \link{daRawResults}.
-#' @param data complete data set
-#' @param family.glm family for glm method. Use 'binomial' for logistic regression.
+#' @param original.model Original fitted model
+#' @param newdata Data used in update statement
 #' @param ...  ignored
 #' @return A function described by \link{using-fit-indices}. You could retrieve following indices
 #' \describe{
@@ -79,30 +86,38 @@ da.lm.fit<-function(data,...) {
 #' x3<-rnorm(1000)
 #' y<-factor(runif(1000) > exp(x1+x2+x3)/(1+exp(x1+x2+x3)))
 #' df.1=data.frame(x1,x2,x3,y)
-#' da.glm.fit(data=df.1)("names")
-#' da.glm.fit(data=df.1, family.glm='binomial')(y~x1)
-da.glm.fit<-function(data,family.glm,...) {
+#' glm.1<-glm(y~x1+x2+x3,data=df.1,family=binomial)
+#' da.glm.fit(original.model=glm.1)("names")
+#' da.glm.fit(original.model=glm.1)(y~x1)
+da.glm.fit<-function(original.model, newdata=NULL,...) {
 
 	mc=match.call()
 	function(x) {
 	    if(x=="names") {
 			return(c("r2.m","r2.cs","r2.n","r2.e"))
-		}
+	    }
 
-		g1<-glm(x,data=data,family=family.glm);
 
-		g.null<-update(g1,~1,data=data,family=family.glm)
-		#print(summary(g1))
+	  if(!is.null(newdata)) {
+	    g1<-update(original.model, x, data=newdata)
+	    g.null<-update(original.model,~1, data=newdata)
+	  } else {
+	    g1<-update(original.model, x)
+	    g.null<-update(original.model,~1)
+	  }
+
 		#print(logLik(g.null))
+		#print(logLik(g1))
 		#l0=-0.5*g1$null.deviance
 
 		#print(l0)
+
+
 		l0=logLik(g.null)
 		l1=logLik(g1)
-		n<-nrow(mc$data)
+		n<-nrow(g1$model)
 
-
-		r2.cs<- 1-   exp(2/n*(l0 - l1) )
+		r2.cs<- 1- exp(2/n*(l0 - l1) )
 		#cat(l0,",",l1,",",n,",",r2.cs,"\n")
     list(
 		  r2.m=1-(l1/l0),
@@ -121,8 +136,8 @@ da.glm.fit<-function(data,family.glm,...) {
 #' Cox and Snell is preferred and pseudo-\eqn{R^2} should be preferred, because McFadden's index
 #' could be negative.
 #'
-#' @param data complete data set
-#' @param link.betareg link function for the mean model. By default, logit.
+#' @param original.model Original fitted model
+#' @param newdata Data used in update statement
 #' @param ...  ignored
 #'
 #' @return A function described by \link{using-fit-indices}. You could retrieve following indices:
@@ -144,7 +159,7 @@ da.glm.fit<-function(data,family.glm,...) {
 #' @importFrom stats lm logLik update
 #' @export
 #'
-da.betareg.fit<-function(data,link.betareg,...) {
+da.betareg.fit<-function(original.model, newdata=NULL, ...) {
   if (!requireNamespace("betareg", quietly = TRUE)) { #nocov start
     stop("betareg needed for this function to work. Please install it.",
          call. = FALSE)
@@ -155,15 +170,22 @@ da.betareg.fit<-function(data,link.betareg,...) {
       return(c("r2.cs","r2.pseudo","r2.m"))
     }
 
-    g1<-betareg::betareg(formula = x,data=data, link=link.betareg)
+    if(!is.null(newdata)) {
+      g1<-update(original.model, x,data=newdata)
+      g.null<-update(original.model,~1, data=newdata)
+    } else {
+      g1<-update(original.model, x)
+      g.null<-update(original.model,~1)
+    }
+
     pseudo.r2<-g1$pseudo.r.squared
     if(is.na(pseudo.r2)) {
       pseudo.r2<-0
     }
-    g.null<-update(g1,~1,data=data)
+
     l0=logLik(g.null)
     l1=logLik(g1)
-    n<-nrow(mc$data)
+    n<-nrow(g1$model)
 
 
     r2.cs<- 1-   exp(2/n*(l0 - l1) )
@@ -179,33 +201,58 @@ da.betareg.fit<-function(data,link.betareg,...) {
 
 
 
-#' Provides fit indices for hierarchical linear models, based on Luo and Azen (2013).
+#' Provides fit indices for hierarchical linear models, based on Nakagawa(2013) and Luo and Azen (2013).
 #'
-#' @param data complete data set containing the variables in the model
+#' @param original.model Original fitted model
 #' @param null.model needed for HLM models
+#' @param newdata Data used in update statement
 #' @param ... ignored
 #' @references
 #' \itemize{
 #' \item Luo, W., & Azen, R. (2012). Determining Predictor Importance in Hierarchical Linear Models Using Dominance Analysis. Journal of Educational and Behavioral Statistics, 38(1), 3-31. doi:10.3102/1076998612458319
+#' \item Nakagawa, S., & Schielzeth, H. (2013). A general and simple method for obtaining R2 from generalized linear mixed-effects models. Methods in Ecology and Evolution, 4(2), 133-142. doi:10.1111/j.2041-210x.2012.00261.x
 #' }
 #' @inheritParams using-fit-indices
 #' @family fit indices
 #' @export
 
-da.lmerMod.fit<-function(data, null.model, ...) {
+da.lmerMod.fit<-function(original.model, null.model, newdata=NULL, ...) {
   if (!requireNamespace("lme4", quietly = TRUE)) { #nocov start
     stop("lme4 needed for this function to work. Please install it.",
       call. = FALSE)
   } #nocov end
+
+  performance.available<-requireNamespace("performance", quietly=TRUE)
 	mc=match.call()
 	function(x) {
 		if(x=="names") {
-			return(c("rb.r2.1","rb.r2.2","sb.r2.1","sb.r2.2"))
+
+		  if(performance.available) {
+		    names.out<-c("n.marg","n.cond","rb.r2.1","rb.r2.2","sb.r2.1","sb.r2.2")
+		  } else {
+		    names.out<-c("rb.r2.1","rb.r2.2","sb.r2.1","sb.r2.2")
+		  }
+		  return(names.out)
 		}
 
-		l1<-lme4::lmer(x,data=data);
-		lmmr2<-lmmR2(m.null=null.model, l1)
-		list(rb.r2.1=lmmr2$rb.r2.1,rb.r2.2=lmmr2$rb.r2.2, sb.r2.1=lmmr2$sb.r2.1,sb.r2.2=lmmr2$sb.r2.2)
+	  if(!is.null(newdata)) {
+	    l1<-update(original.model, x,data=newdata)
+	    g.null<-update(null.model, data=newdata)
+	  } else {
+	    l1<-update(original.model, x)
+	    g.null<-null.model
+	  }
+
+		lmmr2<-lmmR2(m.null=g.null, l1)
+
+
+		out<-list(rb.r2.1=lmmr2$rb.r2.1,rb.r2.2=lmmr2$rb.r2.2, sb.r2.1=lmmr2$sb.r2.1,sb.r2.2=lmmr2$sb.r2.2)
+		if(performance.available) {
+      r2.nak<-performance::r2_nakagawa(l1)
+      out$n.marg<-r2.nak[[2]]
+      out$n.cond<-r2.nak[[1]]
+		}
+    out
 	}
 }
 
@@ -260,12 +307,13 @@ da.mlmWithCov.fit<-function(base.cov, ...) {
 #' Provides coefficient of determination for \code{dynlm} models.
 #'
 #' Uses \eqn{R^2} (coefficient of determination) as fit index
-#' @param data complete data set containing the variables in the model
+#' @param original.model Original fitted model
+#' @param newdata Data used in update statement
 #' @param ... ignored
 #' @return A function described by \link{using-fit-indices} description for interface
 #' @export
 #' @family fit indices
-da.dynlm.fit<-function(data,...) {
+da.dynlm.fit<-function(original.model, newdata=NULL, ...) {
   mc=match.call()
   function(x) {
     if(x=="names") {
@@ -273,7 +321,14 @@ da.dynlm.fit<-function(data,...) {
     }
 
     environment(x)<-environment()
-    dlm<-dynlm::dynlm(formula=x,data=data)
+    #dlm<-dynlm::dynlm(formula=x,data=data)
+
+    if(!is.null(newdata)) {
+      dlm<-update(original.model, x, data=newdata)
+    } else {
+      dlm<-update(original.model, x)
+    }
+
     out<-list(r2=summary(dlm)$r.squared)
     out
   }

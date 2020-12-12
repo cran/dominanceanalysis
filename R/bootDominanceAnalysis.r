@@ -63,9 +63,9 @@ bootDominanceAnalysis<-function(x,R,constants=c(),terms=NULL, fit.functions="def
 	 }
 
 	boot.da<-function(d,i) {
-		ss<-d[i,]
-		da<-dominanceAnalysis(x,constants=constants,terms=terms, fit.functions=fit.functions,data=ss, null.model=null.model,...)
-
+	  # UGLY HACK.
+		boot.new.data<-d[i,]
+		da<-dominanceAnalysis(x,constants=constants,terms=terms, fit.functions=fit.functions, newdata=boot.new.data, null.model=null.model,...)
 		out<-c(aplanar(da$complete),aplanar(da$conditional),aplanar(da$general))
 		names(out)<-c.names
 		out
