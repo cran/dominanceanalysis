@@ -69,7 +69,8 @@ plot(dapres, which.graph ="general",fit.function = "r2.m")
 dominanceMatrix(dapres, type="general",fit.functions = "r2.m", ordered=TRUE)
 
 ## ----eval=FALSE---------------------------------------------------------------
-#  bootmodpres100 <- bootDominanceAnalysis(modpres, R=100)
+#  set.seed(12346)
+#  bootmodpres100 <- bootDominanceAnalysis(modpres, R=10)
 #  summary(bootmodpres100,fit.functions="r2.m")
 
 ## ---- echo=FALSE--------------------------------------------------------------

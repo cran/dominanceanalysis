@@ -1,6 +1,7 @@
 Package: dominanceanalysis
 Title: Dominance Analysis
-Date: 2020-12-11
+Date: 2024-02-04
+Encoding: UTF-8
 Description: Dominance analysis is a method that allows to compare the
              relative importance of predictors in multiple regression models:
              ordinary least squares, generalized linear models, 
@@ -18,25 +19,25 @@ Description: Dominance analysis is a method that allows to compare the
              respectively.
 Authors@R: c(
   person("Claudio", "Bustos Navarrete", 
-         email = "clbustos@gmail.com", role = c("aut", "cre"),
+         email = "clbustos@gmail.com", role = c("aut", "cre", "cph"),
          comment = c(ORCID = "0000-0003-3478-9858")),
   person("Filipa", "Coutinho Soares", 
          email = "filipa.mco.soares@gmail.com", role = c("aut"),
          comment = c(ORCID = "0000-0002-7579-2538")))
-Version: 2.0.0
-Depends: R (>= 3.6.0)
+Version: 2.1.0
+Depends: R (>= 4.0.0)
 License: GPL-2
 LazyData: true
-Imports: methods, stats
+Imports: methods, stats, ggplot2
 Suggests: lme4, boot, testthat, car, covr, knitr,rmarkdown,pscl, dynlm,
-        ggplot2, reshape2, betareg, performance
-RoxygenNote: 7.1.1
+        reshape2, betareg, performance
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2020-12-11 03:18:16 UTC; cdx
-Author: Claudio Bustos Navarrete [aut, cre]
+Packaged: 2024-02-04 18:31:23 UTC; cdx
+Author: Claudio Bustos Navarrete [aut, cre, cph]
     (<https://orcid.org/0000-0003-3478-9858>),
   Filipa Coutinho Soares [aut] (<https://orcid.org/0000-0002-7579-2538>)
 Maintainer: Claudio Bustos Navarrete <clbustos@gmail.com>
 Repository: CRAN
-Date/Publication: 2020-12-12 15:20:02 UTC
+Date/Publication: 2024-02-05 20:50:17 UTC
